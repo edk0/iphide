@@ -93,13 +93,15 @@ static void permute(void *in, void *out, size_t bits) {
 	bitcopy(br, 0, in, (bits - 1) / 2 + 1, bits / 2);
 
 	for (int i = 0; i < FEISTEL_ROUNDS; i++) {
+		/* number of bits to keep. bl is the original l */
 		size_t trim = (l == bl) ? (bits - 1) / 2 + 1 : bits / 2;
 		siphash(r, 8, key, hash, sizeof hash);
-		for (int j = 0; j < (trim - 1) / 8 + 1; j++)
+		for (size_t j = 0; j < (trim - 1) / 8 + 1; j++)
 			l[j] ^= hash[j];
 		if (trim % 8)
 			l[trim/8] &= 0xff << (8 - trim % 8);
 		tmp = l; l = r; r = tmp;
+		/* not a proper key schedule but i've decided it's good enough */
 		for (int j = 0; j < 16; j+=2)
 			ktmp[j] = k[j] ^ k[j+1], ktmp[j+1] = key[j+1];
 		siphash(k, 16, ktmp, khash, sizeof hash);
