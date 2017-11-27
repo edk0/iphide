@@ -13,7 +13,8 @@ static const uint8_t key[16] = {
 	59, 61, 67, 71, 73, 79, 83, 89,
 };
 
-#define SKIP_PREFIX 12
+#define SKIP_PREFIX_V4 12
+#define SKIP_PREFIX_V6 32
 
 #define FEISTEL_ROUNDS 4
 
@@ -115,6 +116,7 @@ static void permute(void *in, void *out, size_t bits) {
 
 int main(int argc, char **argv) {
 	char b[200] = {0};
+	int af;
 
 	union {
 		struct in_addr  ip4;
@@ -128,17 +130,29 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	if (!inet_pton(AF_INET, argv[1], &addr.ip4)) {
+	if (inet_pton(AF_INET, argv[1], &addr.ip4)) {
+		af = AF_INET;
+	} else if (inet_pton(AF_INET6, argv[1], &addr.ip6)) {
+		af = AF_INET6;
+	} else {
 		fputs("invalid address", stderr);
 		return -1;
 	}
 
-	permute(&addr.ip4, &dst.ip4, SKIP_PREFIX);
-	for (int i = SKIP_PREFIX; i < 32; i++) {
-		addbit(&addr.ip4, &dst.ip4, 4, i);
+	switch (af) {
+	case AF_INET:
+		permute(&addr.ip4, &dst.ip4, SKIP_PREFIX_V4);
+		for (int i = SKIP_PREFIX_V4; i < 32; i++)
+			addbit(&addr.ip4, &dst.ip4, 4, i);
+		break;
+	case AF_INET6:
+		permute(&addr.ip6, &dst.ip6, SKIP_PREFIX_V6);
+		for (int i = SKIP_PREFIX_V6; i < 128; i++)
+			addbit(&addr.ip6, &dst.ip6, 16, i);
+		break;
 	}
 
-	inet_ntop(AF_INET, &dst.ip4, b, sizeof b);
+	inet_ntop(af, &dst, b, sizeof b);
 	printf("%s -> %s\n", argv[1], b);
 
 	return 0;
