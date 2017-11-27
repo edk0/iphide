@@ -82,9 +82,12 @@ static void bitcopy(void *dst_, size_t dstbit, void *src_, size_t srcbit, size_t
 
 
 static void permute(void *in, void *out, size_t bits) {
+	uint8_t k[16], ktmp[16], khash[16];
 	uint8_t bl[8] = {0}, br[8] = {0};
 	uint8_t *l = bl, *r = br, *tmp;
 	uint8_t hash[8];
+
+	memcpy(k, key, sizeof k);
 
 	bitcopy(bl, 0, in, 0, (bits - 1) / 2 + 1);
 	bitcopy(br, 0, in, (bits - 1) / 2 + 1, bits / 2);
@@ -97,6 +100,10 @@ static void permute(void *in, void *out, size_t bits) {
 		if (trim % 8)
 			l[trim/8] &= 0xff << (8 - trim % 8);
 		tmp = l; l = r; r = tmp;
+		for (int j = 0; j < 16; j+=2)
+			ktmp[j] = k[j] ^ k[j+1], ktmp[j+1] = key[j+1];
+		siphash(k, 16, ktmp, khash, sizeof hash);
+		memcpy(k, khash, sizeof k);
 	}
 
 	bitcopy(out, 0, bl, 0, (bits - 1) / 2 + 1);
