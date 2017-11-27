@@ -60,7 +60,7 @@ static void bitcopy(void *dst_, size_t dstbit, void *src_, size_t srcbit, size_t
 #	define READ_BITS(nb_) do {\
 		size_t nb = (nb_); \
 		size_t p = nb < 8 - srcbit ? nb : 8 - srcbit; \
-		c = src[0] << (srcbit); \
+		c = (src[0] << (srcbit)) & (0xff << (8 - nb)); \
 		if (p < nb) c |= (src[1] & 0xff << (8 - nb + p)) >> p; \
 	} while (0)
 
