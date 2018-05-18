@@ -2,6 +2,10 @@
 
 structure-preserving encryption for IP addresses
 
+Home-grown crypto features ahead, so I'll include the standard warning about
+feet and bazookas, though in this case I'd posit that very little could be worse
+than current alternatives ;)
+
 I wrote this in the hope of solving all the problems with IP cloaking on IRC. My
 attempt encrypts each bit of an IP address based on all the bits preceding it,
 preserving the prefix structure of IP addresses:
